@@ -10,7 +10,7 @@ from wtforms import StringField, PasswordField, IntegerField
 from wtforms.validators import InputRequired, Email, DataRequired, EqualTo, Length
 
 from models.product_model import Product
-from models.orders_model import Order
+from models.orders_model import Order_items
 
 
 class User(db.Model, UserMixin):
@@ -28,7 +28,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(255))
 
     products = db.relationship('Product', back_populates="user")
-    order = db.relationship('Order', back_populates="user")
+    orders = db.relationship('Order_items', back_populates='user')
 
 
     def __init__(self,
@@ -59,6 +59,8 @@ class User(db.Model, UserMixin):
                 return res
 
     def json(self):
+        products = Product.fetch_the_session()
+        orders = Order_items.query.filter_by(user_id=self.id)
         return{
             'id': self.id,
             'last_name': self.last_name,
@@ -71,8 +73,8 @@ class User(db.Model, UserMixin):
                 'building': self.building,
                 'appartment': self.appartment
             },
-            'orders': len(list(Product.query.filter_by(user_id=self.id))),
-            'products': list(map(lambda x: x.display(), Product.query.filter_by(user_id=self.id)))
+            'orders_quantity': len(orders.all()),
+            'orders': list(map(lambda x: x.info(), orders))
         }
 
     def add_to_db(self):

@@ -63,22 +63,5 @@ class GetUsers(Resource):
 class Profile(Resource):
     @login_required
     def get(self):
-        return {
-            'name': current_user.name,
-            'email': current_user.email,
-            'password': current_user.password
-        }
-
-class AddOrder(Resource):
-    def post(self):
-        if 'order' not in session:
-            session['order'] = []
-        data = request.get_json()
-        if data:
-            name = Product.query.filter_by(id=data['id']).first()
-            session['order'].append({'id': data['id'], 'quantity': data['quantity']})
-            session.modified = True
-
-            print(session['order'])
-
+        return {'orders': Product.fetch_the_session()}
 

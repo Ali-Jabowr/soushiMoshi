@@ -4,9 +4,9 @@ from flask_rbac import RBAC
 from flask_login import LoginManager
 from os import path
 
-from resources.resource_users import UserReg, UserLogin, GetUsers, UserLogout, Profile, AddOrder
+from resources.resource_users import UserReg, UserLogin, GetUsers, UserLogout, Profile
 from resources.resource_products import Products, GetAllProducts, ProductsFilter
-from resources.resource_orders import Orders
+from resources.resource_orders import Orders, AddToSession, AddOrder
 from models.users_model import User
 
 app = Flask(__name__)
@@ -36,17 +36,16 @@ api.add_resource(UserLogin, '/login')
 api.add_resource(GetUsers, '/users')
 api.add_resource(UserLogout, '/logout')
 api.add_resource(Profile, '/profile')
-api.add_resource(AddOrder, '/order')
+
+# orders endpoints
+api.add_resource(AddOrder, '/orders/order', '/orders/getorders', '/orders/delete/<int:id>')
+api.add_resource(AddToSession, '/session')
 
 
 # products endpoints
 api.add_resource(Products, '/products/add', '/products/delete/<int:id>')
 api.add_resource(GetAllProducts, '/products/getproducts')
 api.add_resource(ProductsFilter, '/products/<string:label>')
-
-
-# orders endpoints
-api.add_resource(Orders, '/orders')
 
 if __name__ == "__main__":
     from db import db

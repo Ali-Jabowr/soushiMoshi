@@ -1,5 +1,5 @@
 from db import db
-from flask import request
+from flask import request, session
 
 
 class Product(db.Model):
@@ -12,8 +12,6 @@ class Product(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="CASCADE"))
     user = db.relationship('User', back_populates="products")
-
-    order = db.relationship('Order', back_populates="product")
 
     def __init__(self, name, label, price, description, user_id):
         self.name = name
@@ -43,6 +41,21 @@ class Product(db.Model):
     @classmethod
     def find_in_db(cls, name):
         return cls.query.filter_by(name=name).first()
+
+    def fetch_the_session():
+        products = []
+        for item in session['order']:
+            product = Product.query.filter_by(id=item['id']).first()
+            quantity = item['quantity']
+
+            products.append({'id': product.id,
+                             'name': product.name,
+                             'price': product.price,
+                             'quantity': quantity
+                             })
+        return products
+
+
 
 
     def add_to_products(self):
