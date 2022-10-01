@@ -1,4 +1,5 @@
 from flask import request
+from db import db
 from flask_restful import Resource
 from flask_login import current_user
 
@@ -24,6 +25,19 @@ class Products(Resource):
             product.delete_from_products()
             return True
         return {"message": "couldn't find this product id"}
+
+    def put(self):
+        data = request.get_json()
+        product = Product.query.filter_by(id=data['id']).first()
+
+        for key, value in data.items():
+            if hasattr(product, key):
+                try:
+                    setattr(product, key, value)
+                    db.session.commit()
+                except:
+                    return False
+        return True
 
 
 

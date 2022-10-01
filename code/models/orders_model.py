@@ -17,14 +17,37 @@ class Order_items(db.Model):
         self.product_id = product_id
         self.user_id = user_id
 
+    def user_view(self):
+        product = Product.query.filter_by(id=self.product_id).first()
+        return {
+            'product name': product.name,
+            'price': product.price,
+            'label': product.label,
+            'description': product.description,
+            'quantity': self.quantity
+        }
+
+    def admin_info(self):
+        product = Product.query.filter_by(id=self.product_id).first()
+        return {
+            'id': self.id,
+            'user': self.user.user_info(),
+            'product name': product.name,
+            'price': product.price,
+            'label': product.label,
+            'description': product.description,
+            'quantity': self.quantity
+        }
+
     def info(self):
         product = Product.query.filter_by(id=self.product_id).first()
         return {
             'id': self.id,
-            'user_id': self.user.id,
-            'user_first_name': self.user.first_name,
             'product name': product.name,
-            'price': product.price
+            'price': product.price,
+            'label': product.label,
+            'description': product.description,
+            'quantity': self.quantity
         }
 
 

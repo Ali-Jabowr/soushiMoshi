@@ -1,4 +1,5 @@
 import re
+from db import db
 from flask import request, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_restful import Resource
@@ -7,6 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from models.users_model import User, RegisterForm, LoginForm
 from models.product_model import Product
+from models.orders_model import Order_items
 
 wtforms_json.init()
 
@@ -60,8 +62,30 @@ class GetUsers(Resource):
     def get(self):
         return list(map(lambda x: x.json(), User.query.all()))
 
+
 class Profile(Resource):
     @login_required
     def get(self):
-        return {'orders': Product.fetch_the_session()}
+        user = User.query.filter_by(id=current_user.id).first()
+        return {'user': user.profile()}
+
+    def put(self):
+        data = request.get_json()
+
+        user = User.query.filter_by(email=data['email']).first()
+        if user != None and current_user.email != data['email']:
+            return {'message': 'Email already registered'}
+        user = User.query.filter_by(phone_number=data['phone_number']).first()
+        if user != None and current_user.phone_number != data['phone_number']:
+            return {'message': 'this phone number already used'}
+
+        user = User.query.filter_by(id=current_user.id).first()
+        for key, value in data.items():
+            if hasattr(user, key):
+                try:
+                    setattr(user, key, value)
+                    db.session.commit()
+                except:
+                    return False
+        return True
 

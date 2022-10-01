@@ -58,8 +58,14 @@ class User(db.Model, UserMixin):
             if check_password_hash(res.password, password):
                 return res
 
+    def update_info(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+                db.session.commit()
+
+
     def json(self):
-        products = Product.fetch_the_session()
         orders = Order_items.query.filter_by(user_id=self.id)
         return{
             'id': self.id,
@@ -68,6 +74,7 @@ class User(db.Model, UserMixin):
             'father_name': self.father_name,
             'email': self.email,
             'password': self.password,
+            'phone_number': self.phone_number,
             'address': {
                 'street': self.street,
                 'building': self.building,
@@ -75,6 +82,38 @@ class User(db.Model, UserMixin):
             },
             'orders_quantity': len(orders.all()),
             'orders': list(map(lambda x: x.info(), orders))
+        }
+
+    def profile(self):
+        orders = Order_items.query.filter_by(user_id=self.id)
+        return{
+            'last_name': self.last_name,
+            'first_name': self.first_name,
+            'father_name': self.father_name,
+            'email': self.email,
+            'phone_number': self.phone_number,
+            'address': {
+                'street': self.street,
+                'building': self.building,
+                'appartment': self.appartment
+            },
+            'orders_quantity': len(orders.all()),
+            'orders': list(map(lambda x: x.user_view(), orders))
+        }
+
+    def user_info(self):
+        orders = Order_items.query.filter_by(user_id=self.id)
+        return{
+            'last_name': self.last_name,
+            'first_name': self.first_name,
+            'father_name': self.father_name,
+            'email': self.email,
+            'phone_number': self.phone_number,
+            'address': {
+                'street': self.street,
+                'building': self.building,
+                'appartment': self.appartment
+            }
         }
 
     def add_to_db(self):

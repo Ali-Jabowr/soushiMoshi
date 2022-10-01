@@ -27,17 +27,27 @@ class AddToSession(Resource):
 
 class AddOrder(Resource):
     def post(self):
-        products = Product.fetch_the_session()
+        products = request.get_json()
 
-        for product in products:
-            order = Order_items(product['id'], product['quantity'], current_user.id)
+        for product in products['orders']:
+
+            product_id = Product.query.filter_by(id=product['id']).first()
+            if not product_id:
+                return {'message': 'there are no such product...',
+                        'product_id': product['id']
+                        }
+
+            order = Order_items(
+                product['id'],
+                product['quantity'],
+                current_user.id)
             if order:
                 try:
                     order.add_to_orders()
-                    return True
                 except:
                     return False
-            return {'message': 'an error has occured...'}
+        return True
+
 
     def get(self):
         orders = Order_items.query.all()
@@ -45,12 +55,27 @@ class AddOrder(Resource):
             return {'orders': list(map(lambda x: x.info(), orders))}
         return {'message': 'an error has occured...'}
 
-    def delete(self, id):
-        order = Order_items.query.filter_by(id=id).first()
-        try:
-            order.delete_from_orders()
+    def delete(self):
+        data = request.get_json()
+        orders = Order_items.query.all()
+        if data['delete'] == "all":
+            orders = Order_items.query.filter_by(user_id=current_user.id).all()
+            for order in orders:
+                try:
+                    order.delete_from_orders()
+                except:
+                    return {'message': 'an error has occured...'}
             return True
-        except:
-            return False
+
+        else:
+            for id in data['delete']:
+                order = Order_items.query.filter_by(id=id).first()
+                if order != None and current_user.id != order.user_id:
+                    return{'message': 'you are not allowed to do this...'}
+                try:
+                    order.delete_from_orders()
+                except:
+                    return False, 404
+            return True
 
 
