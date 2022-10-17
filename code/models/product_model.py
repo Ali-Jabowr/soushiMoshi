@@ -27,7 +27,6 @@ class Product(db.Model):
             'label':self.label,
             'price': self.price,
             'description': self.description,
-            'user_id': self.user.id
         }
 
     def display(self):

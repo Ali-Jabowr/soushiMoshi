@@ -5,12 +5,14 @@ from flask_login import login_user, logout_user, login_required, current_user
 from flask_restful import Resource
 import wtforms_json
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_security import roles_required,SQLAlchemyUserDatastore
 
-from models.users_model import User, RegisterForm, LoginForm
+from models.users_model import User, RegisterForm, LoginForm, Role
 from models.product_model import Product
 from models.orders_model import Order_items
 
 wtforms_json.init()
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 
 class UserReg(Resource):
     def post (self):
@@ -29,8 +31,9 @@ class UserReg(Resource):
                 form.building.data,
                 form.appartment.data
             )
-
             try:
+                user_role = user_datastore.find_or_create_role('user')
+                user_datastore.add_role_to_user(user, user_role)
                 user.add_to_db()
                 return True
             except:
@@ -89,3 +92,33 @@ class Profile(Resource):
                     return False
         return True
 
+class Admin_area(Resource):
+    def post (self):
+        data = request.get_json()
+        form = RegisterForm.from_json(data, skip_unknown_keys=False)
+        if form.validate():
+            password_hash = generate_password_hash(form.password.data)
+            user = User(
+                form.last_name.data,
+                form.first_name.data,
+                form.father_name.data,
+                form.email.data,
+                password_hash,
+                form.phone_number.data,
+                form.street.data,
+                form.building.data,
+                form.appartment.data
+            )
+            try:
+                user_role = user_datastore.find_or_create_role('admin')
+                user_datastore.add_role_to_user(user, user_role)
+                user.add_to_db()
+                return True
+            except:
+                return False
+
+        return {'message': [(key, err) for key, err in form.errors.items()]}
+
+    @roles_required('admin')
+    def get(self):
+        return {'message': 'you are not allowed ... '}

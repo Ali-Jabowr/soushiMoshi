@@ -41,13 +41,17 @@ class Order_items(db.Model):
 
     def info(self):
         product = Product.query.filter_by(id=self.product_id).first()
+        if not product:
+            return {"message": "invaild product ... "}
+
         return {
             'id': self.id,
             'product name': product.name,
             'price': product.price,
             'label': product.label,
             'description': product.description,
-            'quantity': self.quantity
+            'quantity': self.quantity,
+            'user': self.user.user_info()
         }
 
 

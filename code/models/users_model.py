@@ -1,5 +1,3 @@
-# coding: utf-8
-
 from db import db
 from flask import request
 from flask_login import UserMixin, current_user
@@ -8,9 +6,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm, Form
 from wtforms import StringField, PasswordField, IntegerField
 from wtforms.validators import InputRequired, Email, DataRequired, EqualTo, Length
+from flask_security import RoleMixin
 
 from models.product_model import Product
 from models.orders_model import Order_items
+
+
+
+# Define models
+roles_users = db.Table('roles_users',
+        db.Column('user_id', db.Integer(), db.ForeignKey('users.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
 
 
 class User(db.Model, UserMixin):
@@ -29,6 +40,8 @@ class User(db.Model, UserMixin):
 
     products = db.relationship('Product', back_populates="user")
     orders = db.relationship('Order_items', back_populates='user')
+    roles = db.relationship('Role', secondary=roles_users,
+                            backref=db.backref('users', lazy='dynamic'))
 
 
     def __init__(self,
