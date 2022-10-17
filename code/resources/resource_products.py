@@ -2,10 +2,12 @@ from flask import request
 from db import db
 from flask_restful import Resource
 from flask_login import current_user
+from flask_security import roles_required
 
 
 from models.product_model import Product
 class Products(Resource):
+    @roles_required('admin')
     def post(self):
         data = request.get_json()
         if data:
@@ -18,6 +20,7 @@ class Products(Resource):
                     return {'message': 'an error has occured...!'}
             return False
 
+    @roles_required('admin')
     def delete(self, id):
         product = Product.query.filter_by(id=id).first()
         print(product)
@@ -26,6 +29,7 @@ class Products(Resource):
             return True
         return {"message": "couldn't find this product id"}
 
+    @roles_required('admin')
     def put(self):
         data = request.get_json()
         product = Product.query.filter_by(id=data['id']).first()
@@ -42,6 +46,7 @@ class Products(Resource):
 
 
 class GetAllProducts(Resource):
+    @roles_required('admin')
     def get(self):
         return {'Products': list(map(lambda x: x.products_fetch(), Product.query.all()))}
 
